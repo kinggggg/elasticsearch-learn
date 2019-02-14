@@ -10,6 +10,7 @@ import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -21,11 +22,14 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 
 /**
  * Unit test for simple App.
@@ -39,6 +43,34 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //将查询出的文档进行删除
+    @Test
+    public void testSearchAll() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        QueryBuilder qb = QueryBuilders.matchAllQuery();
+
+        SearchResponse sr = client.prepareSearch("index01")
+                .setQuery(qb)
+                .setSize(3) //虽然是查询所有，但是也可以指定要查询的数量
+                .get();
+
+        SearchHits hits = sr.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
     }
 
     //将查询出的文档进行删除
