@@ -17,6 +17,10 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.Test;
 
@@ -35,6 +39,27 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //将查询出的文档进行删除
+    @Test
+    public void testSearchDel() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        BulkByScrollResponse response = DeleteByQueryAction.INSTANCE
+                .newRequestBuilder(client)
+                .filter(QueryBuilders.matchQuery("title", "工厂"))
+                .source("index01")
+                .get();
+
+        long count = response.getDeleted();
+        System.out.println("删除了" + count);
     }
 
     //bulk批量操作
