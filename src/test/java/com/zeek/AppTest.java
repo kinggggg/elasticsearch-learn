@@ -2,8 +2,12 @@ package com.zeek;
 
 import static org.junit.Assert.assertTrue;
 
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.get.MultiGetItemResponse;
+import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -31,6 +35,71 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //bulk批量操作
+    @Test
+    public void testBulk() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        bulkRequest.add(client.prepareIndex("lib2", "books", "4")
+                .setSource(XContentFactory.jsonBuilder()
+                        .startObject()
+                        .field("title", "python")
+                        .field("price", 68)
+                        .endObject()
+                )
+        );
+        bulkRequest.add(client.prepareIndex("lib2", "books", "5")
+                .setSource(XContentFactory.jsonBuilder()
+                        .startObject()
+                        .field("title", "VR")
+                        .field("price", 38)
+                        .endObject()
+                )
+        );
+        //批量执行
+        BulkResponse bulkResponse = bulkRequest.get();
+
+        System.out.println(bulkResponse.status());
+        if (bulkResponse.hasFailures()) {
+
+            System.out.println("存在失败操作");
+        }
+
+    }
+
+    //mget批量查询
+    @Test
+    public void testMget() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        MultiGetResponse mgResponse = client.prepareMultiGet()
+                .add("index1","blog","3","2")
+                .add("lib3","user","1","2","3")
+                .get();
+
+        for(MultiGetItemResponse response:mgResponse){
+            GetResponse rp=response.getResponse();
+            if(rp!=null && rp.isExists()){
+                System.out.println(rp.getSourceAsString());
+            }
+        }
+
     }
 
     //upsert：存在更新，不存在插入
