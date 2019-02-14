@@ -45,6 +45,34 @@ public class AppTest
         assertTrue( true );
     }
 
+    //multi match查询
+    @Test
+    public void testMultiMatch() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        QueryBuilder builder = QueryBuilders.multiMatchQuery("changge", "interests", "address"); //与match不同的是这里第一个参数为要查询的值，字段1，字段2...
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(3)
+                .get();
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
     //match查询
     @Test
     public void testMatch() throws Exception {
@@ -55,7 +83,7 @@ public class AppTest
         TransportClient client = new PreBuiltTransportClient(settings)
                 .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
 
-        QueryBuilder builder = QueryBuilders.matchQuery("interests", "changge");
+        QueryBuilder builder = QueryBuilders.matchQuery("interests", "changge"); // 字段,要查询的字段值
 
         SearchResponse response = client.prepareSearch("index01")
                 .setQuery(builder)
