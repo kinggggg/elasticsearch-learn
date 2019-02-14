@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -30,6 +31,42 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //upsert：存在更新，不存在插入
+    @Test
+    public void testUpsert() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        //添加文档
+        IndexRequest request1 = new IndexRequest("index01", "blog", "8")
+                .source(
+                        XContentFactory.jsonBuilder().startObject()
+                                .field("id", "2")
+                                .field("title", "工场模式")
+                                .field("content", "静态工场，实例工场。")
+                                .field("postdate", "2018-05-20")
+                                .field("url", "csdn.net/79239072")
+                                .endObject()
+                );
+
+        //若存在id8的文档则进行更新，若不存在执行插入操作
+        UpdateRequest request2 = new UpdateRequest("index01", "blog", "8")
+                .doc(
+                        XContentFactory.jsonBuilder().startObject()
+                        .field("title", "设计模式")
+                        .endObject()
+                ).upsert(request1);
+
+        UpdateResponse response = client.update(request2).get();
+        System.out.println(response.status());
+
     }
 
     //从es中更新
