@@ -2,6 +2,7 @@ package com.zeek;
 
 import static org.junit.Assert.assertTrue;
 
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -27,6 +28,23 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //从es中添加
+    @Test
+    public void testDelete() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        DeleteResponse response = client.prepareDelete("index01", "blog", "10").get();
+
+        System.out.println(response.status());
+
     }
 
     //从es中添加
