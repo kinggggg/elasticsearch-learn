@@ -45,6 +45,62 @@ public class AppTest
         assertTrue( true );
     }
 
+    //terms查询
+    @Test
+    public void testTerms() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        QueryBuilder builder = QueryBuilders.termsQuery("interests", "changge", "lvyou");
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(2)
+                .get();
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
+    //term查询
+    @Test
+    public void testTerm() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        QueryBuilder builder = QueryBuilders.termQuery("interests", "changge");
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(2)
+                .get();
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
     //multi match查询
     @Test
     public void testMultiMatch() throws Exception {
