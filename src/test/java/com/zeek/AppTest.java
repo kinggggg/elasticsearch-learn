@@ -29,9 +29,9 @@ public class AppTest
         assertTrue( true );
     }
 
-    //从es中添加或者删除
+    //从es中添加
     @Test
-    public void testSaveOrDel() throws Exception {
+    public void testSave() throws Exception {
 
         //指定ES集群
         Settings settings = Settings.builder().put("cluster.name", "my-application").build();
@@ -95,8 +95,6 @@ public class AppTest
                 .setSource(doc).get();
 
         System.out.println(response.status());
-
-
 
 
     }
