@@ -45,7 +45,35 @@ public class AppTest
         assertTrue( true );
     }
 
-    //将查询出的文档进行删除
+    //match查询
+    @Test
+    public void testMatch() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        QueryBuilder builder = QueryBuilders.matchQuery("interests", "changge");
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(3)
+                .get();
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
+    //查询所有文档
     @Test
     public void testSearchAll() throws Exception {
         //指定ES集群
