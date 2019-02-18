@@ -54,6 +54,35 @@ public class AppTest
         assertTrue( true );
     }
 
+    //分组聚合：类似于sql中的group by
+
+    //组合查询
+    @Test
+    public void testBoolQuery() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        //查询interests当中必须包含changge，并且不能包含lvyou，并且或者address中包含bei jing，并且在1990-01-01后出生的文档
+        /*QueryBuilder builder = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("interests", "changge"))
+                .mustNot(QueryBuilders.matchQuery("interests", "lvyou"))
+                .should(QueryBuilders.matchQuery("address", "bei jing"))
+                .filter(QueryBuilders.rangeQuery("birthday").gte("1990-01-01").format("yyyy-MM-dd"));*/
+
+        //????
+        QueryBuilder builder = QueryBuilders.constantScoreQuery(QueryBuilders.termQuery("name", "zhaoliu"));
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(2)
+                .get();
+    }
+
     //query string，类似于使用查询语句：GET /myindex/article/_search?q=content:html
     @Test
     public void testQueryString() throws Exception {
