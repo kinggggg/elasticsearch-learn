@@ -54,6 +54,42 @@ public class AppTest
         assertTrue( true );
     }
 
+    //query string，类似于使用查询语句：GET /myindex/article/_search?q=content:html
+    @Test
+    public void testQueryString() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        //查找index01中name字段为zhaoliu的文档
+        //QueryBuilder builder = QueryBuilders.commonTermsQuery("name", "zhaoliu");
+
+        //查找index01中含有changge，但是不含有hejiu的文档
+        //QueryBuilder builder = QueryBuilders.queryStringQuery("+changge -hejiu");
+
+        //与上边的不同为：没有像queryStringQuery那么严格必须满足
+        QueryBuilder builder = QueryBuilders.simpleQueryStringQuery("+changge -hejiu");
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(2)
+                .get();
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
     //聚合查询
     @Test
     public void testAggregation() throws Exception {
