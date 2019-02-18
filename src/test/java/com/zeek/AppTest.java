@@ -45,6 +45,52 @@ public class AppTest
         assertTrue( true );
     }
 
+    //range,prefix,wildcard,fuzzy,type,ids查询
+    @Test
+    public void tests() throws Exception {
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        //range范围查询
+        //QueryBuilder builder = QueryBuilders.rangeQuery("birthday").from("1990-01-01").to("2000-12-31");
+
+        //前缀查询prefix：name字段以zhao开头
+        //QueryBuilder builder = QueryBuilders.prefixQuery("name", "zhao");前缀查询prefix：name字段以zhao开头
+
+        //wildcard查询
+        //QueryBuilder builder = QueryBuilders.prefixQuery("name", "zhao*");
+
+        //fuzzy查询
+        //QueryBuilder builder = QueryBuilders.fuzzyQuery("interests", "changge");
+
+        //type查询：查询索引为index01下的类型为blog的文档
+        //QueryBuilder builder = QueryBuilders.typeQuery("blog");
+
+        //ids查询：指定多个文档的id
+        QueryBuilder builder = QueryBuilders.idsQuery().addIds("1", "3");
+
+        SearchResponse response = client.prepareSearch("index01")
+                .setQuery(builder)
+                .setSize(2)
+                .get();
+
+
+
+        SearchHits hits = response.getHits();
+        for (SearchHit hit : hits) {
+            System.out.println(hit.getSourceAsString());
+
+            Map<String, Object> map = hit.getSourceAsMap();
+            for (String key : map.keySet()) {
+                System.out.println(key + "=" + map.get(key));
+            }
+        }
+    }
+
     //terms查询
     @Test
     public void testTerms() throws Exception {
