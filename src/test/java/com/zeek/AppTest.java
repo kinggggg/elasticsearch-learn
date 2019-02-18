@@ -10,6 +10,7 @@ import org.elasticsearch.action.get.MultiGetItemResponse;
 import org.elasticsearch.action.get.MultiGetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
@@ -24,6 +25,14 @@ import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.metrics.avg.Avg;
+import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
+import org.elasticsearch.search.aggregations.metrics.max.Max;
+import org.elasticsearch.search.aggregations.metrics.min.Min;
+import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.Test;
 
@@ -43,6 +52,63 @@ public class AppTest
     public void shouldAnswerWithTrue()
     {
         assertTrue( true );
+    }
+
+    //聚合查询
+    @Test
+    public void testAggregation() throws Exception {
+
+        //指定ES集群
+        Settings settings = Settings.builder().put("cluster.name", "my-application").build();
+
+        //创建访问ES服务的客户端
+        TransportClient client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName("192.168.56.200"), 9300));
+
+        //最大值:字段age中的最大值，aggMax为关键字
+        /*AggregationBuilder agg = AggregationBuilders.max("aggMax").field("age");
+
+        SearchResponse response = client.prepareSearch("index01").addAggregation(agg).get();
+
+        Max max = response.getAggregations().get("aggMax");
+
+        System.out.println(max.getValue());*/
+
+        //最小值
+        AggregationBuilder agg = AggregationBuilders.min("aggMin").field("age");
+
+        SearchResponse response = client.prepareSearch("index01").addAggregation(agg).get();
+
+        Min min = response.getAggregations().get("aggMin");
+
+        System.out.println(min.getValue());
+
+        //平均值
+        /*AggregationBuilder agg = AggregationBuilders.avg("aggAvg").field("age");
+
+        SearchResponse response = client.prepareSearch("index01").addAggregation(agg).get();
+
+        Avg avg = response.getAggregations().get("aggAvg");
+
+        System.out.println(avg.getValue());*/
+
+        //总和
+        /*AggregationBuilder agg = AggregationBuilders.sum("aggSum").field("age");
+
+        SearchResponse response = client.prepareSearch("index01").addAggregation(agg).get();
+
+        Sum sum = response.getAggregations().get("aggSum");
+
+        System.out.println(sum.getValue());*/
+
+        //一个字段上有多少个不同的值
+        /*AggregationBuilder agg = AggregationBuilders.cardinality("aggCardinality").field("age");
+
+        SearchResponse response = client.prepareSearch("index01").addAggregation(agg).get();
+
+        Cardinality cardinality = response.getAggregations().get("aggCardinality");
+
+        System.out.println(cardinality.getValue());*/
     }
 
     //range,prefix,wildcard,fuzzy,type,ids查询
